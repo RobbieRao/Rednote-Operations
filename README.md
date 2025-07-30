@@ -35,55 +35,13 @@ CLI & API 双模式
 ...
 
 🗓️ Roadmap / TODO
-
-优先级
-
-功能
-
-进度
-
-🔜
-
 幻灯片美化‑ 引入 CSS‑like 主题系统‑ 支持背景渐变、icon 风格包
-
-☑
-
-🔜
-
 小红书 OAuth 登录（摆脱 Cookie）
-
-☑
-
-🔜
-
 定时队列管理‑ Web 控制面板‑ 发布失败自动重试
-
-☑
-
-🔍
-
 批量参数网格搜索（prompt & 版式）
-
-☑
-
-🎨
-
 多平台同步（微博 / Bilibili / 抖音）
-
-☑
-
-🌈
-
 支持 PPTX 导出（python‑pptx）
-
-☑
-
-🤞
-
 CI 单元测试 + GitHub Actions
-
-☑
-
 ...
 
 📌 联系方式
