@@ -1,8 +1,8 @@
 // ==UserScript==
-// @name         Zotero GPT Connector
-// @description  Zotero GPT Pro, support ChatGPT Gemini Poe Kimi Coze Chatglm Yiyan Tongyi Claude Mytan ChanlderAi DeepSeek Doubao AIStudio MicrosoftCopilot Wenxiaobai Grok
+// @name         Rednote Connector
+// @description  Browser connector for streaming ChatGPT, Gemini, Poe, Kimi, Claude and more
 // @namespace    http://tampermonkey.net/
-// @icon         https://github.com/MuiseDestiny/zotero-gpt/blob/bootstrap/addon/chrome/content/icons/favicon.png?raw=true
+// @icon         https://example.com/icon.png
 // @noframes
 // @version      4.3.5
 // @author       Polygon
@@ -86,7 +86,7 @@
 // @connect      https://chatglm.cn/*
 // @connect      https://chat.deepseek.com/*
 // @connect      https://chatgpt.com/*
-// @connect      http://127.0.0.1:23119/zoterogpt
+// @connect      http://127.0.0.1:5123/connector
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_setValue
@@ -743,7 +743,7 @@
     this.addEventListener('readystatechange', async function () {
       let requestPatch
       if ((requestPatch = requestPatchArr.find(i => i.AI == AI && i.regex.test(url)))) {
-        execInZotero(`
+        execInPython(`
             let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length - 1];
             task.responseText = ${JSON.stringify(requestPatch.text || "")};
             task.responseType = "markdown";
@@ -754,14 +754,14 @@
           } catch(e) {
             console.log("error extract", e, this.responseText)
           }
-          await execInZotero(`
+          await execInPython(`
               let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length-1]
               task.responseText = ${JSON.stringify(requestPatch.text || "")};
               task.type = "pending";
               task.responseType = "markdown"
             `)
         } else if ([0, 4].includes(this.readyState)) {
-          await execInZotero(`
+          await execInPython(`
             let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length-1]
             task.responseText = ${JSON.stringify(requestPatch.text || "")};
             task.type = "done";
@@ -785,7 +785,7 @@
       const requestPatch = requestPatchArr.find(i => i.AI == AI && i.regex.test(url))
       if (requestPatch) {
         requestPatch.text = ""
-        execInZotero(`
+        execInPython(`
                 let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length - 1];
                 task.responseText = ${JSON.stringify(requestPatch.text)};
                 task.responseType = "markdown";
@@ -800,7 +800,7 @@
             if (done) {
               console.log("requestPatch.text", requestPatch.text)
               if (requestPatch.text.length > 0) {
-                execInZotero(`
+                execInPython(`
                       let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length - 1];
                       task.responseText = ${JSON.stringify(requestPatch.text || "")};
                       task.type = "done";
@@ -817,7 +817,7 @@
             try {
               requestPatch.extract(text, allText)
             } catch (e) { console.log("requestPatch.extract(text)", e) }
-            execInZotero(`
+            execInPython(`
                   let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length - 1];
                   task.responseText = ${JSON.stringify(requestPatch.text || "")};
                   task.responseType = "markdown";
@@ -828,7 +828,7 @@
           }).catch(error => {
             // 捕获所有错误，包括 AbortError
             console.log("Error when Patch", error)
-            execInZotero(`
+            execInPython(`
                   let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length - 1];
                   task.responseText = ${JSON.stringify(requestPatch.text || "")};
                   task.type = "done";
@@ -846,8 +846,8 @@
   };
 
 
-  // 在Zotero中执行代码
-  async function execInZotero(code) {
+  // 与Python后端通信
+  async function execInPython(code) {
     code = `
       if (!window.Meet.Connector){
         window.Meet.Connector = ${JSON.stringify({
@@ -862,7 +862,7 @@
       return new Promise((resolve, reject) => {
         GM_xmlhttpRequest({
           method: "POST",
-          url: "http://127.0.0.1:23119/zoterogpt",
+          url: "http://127.0.0.1:5123/connector",
           headers: {
             "Content-Type": "application/json",
           },
@@ -881,7 +881,7 @@
         });
       });
     } catch (e) {
-      window.alert("execInZotero error: " + code);
+      window.alert("execInPython error: " + code);
       return ""
     }
   }
@@ -1451,7 +1451,7 @@
 
   // 阻塞
   function sleep(ms) {
-    execInZotero()
+    execInPython()
     return new Promise(resolve => setTimeout(resolve, ms));
   }
 
@@ -1515,14 +1515,14 @@
       continue;
     }
     if (!isRunning) {
-      await execInZotero(`
+      await execInPython(`
         window.Meet.Connector.time = 0;
       `)
       await sleep(1000)
       continue;
     }
     try {
-      const tasks = (await execInZotero(`
+      const tasks = (await execInPython(`
         window.Meet.Connector
       `)).tasks
 
@@ -1533,7 +1533,7 @@
       const task = tasks.slice(-1)[0]
       if (task.type == "pending") {
         if (task.file || task.files && task.responseText == undefined) {
-          await execInZotero(`
+          await execInPython(`
             let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length-1]
             task.type = "done"
           `)
@@ -1547,16 +1547,16 @@
         } else if (task.requestText) {
           await setText(task.requestText)
           // 操作浏览器提问
-          await execInZotero(`
+          await execInPython(`
             let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length-1]
             task.requestText = "";
             task.responseText = "<p>Waiting ${AI}...</p>";
           `)
         } else {
           let isDone = false, text = "", type = "html"
-          const setZoteroText = async () => {
+          const setConnectorText = async () => {
             if (typeof (text) !== "string") { return }
-            await execInZotero(`
+            await execInPython(`
               let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length-1]
               task.responseText = ${JSON.stringify(text)};
               task.type = ${isDone} ? "done" : "pending";
@@ -1564,7 +1564,7 @@
             `)
             if (isDone) {
               await sleep(1000)
-              await execInZotero(`
+              await execInPython(`
                 let task = window.Meet.Connector.tasks[window.Meet.Connector.tasks.length-1]
                 task.responseText = ${JSON.stringify(text)};
             `)
@@ -1577,21 +1577,21 @@
             const props = lastNode[Object.keys(lastNode)[0]].alternate.child.memoizedProps
             text = props.text
             isDone = Boolean(lastNode.closest("[class^=ChatMessagesView_messageTuple]").querySelector("[class^=ChatMessageActionBar_actionBar]"))
-            await setZoteroText()
+            await setConnectorText()
           } else if (AI == "Tongyi") {
             const lastAnwser = [...document.querySelectorAll("[class^=answerItem]")].slice(-1)[0]
             type = "markdown"
             const message = lastAnwser[Object.keys(lastAnwser)[0]].memoizedProps.children.find(i => { try { return i.props.children[2].props.message } catch { } }).props.children[2].props.message
             isDone = message.contents[message.contents.length - 1].status == "finished"
             text = message.contents.find(i => i.contentType == "text").content
-            await setZoteroText()
+            await setConnectorText()
           } else if (AI == "Copilot") {
             const lastAnwser = [...document.querySelectorAll('[data-content=ai-message]')].slice(-1)[0]
             type = "markdown"
             const props = lastAnwser[Object.keys(lastAnwser)[0]].pendingProps.children[1][0].props  
             text = props.item.text
             isDone = props.isStreamingComplete
-            await setZoteroText()
+            await setConnectorText()
           } else if (AI == "TencentDeepSeek") {
             const div = document.querySelector(".client-chat");
             const msg = div.__vue__.msgList.slice(-1)[0]
@@ -1603,14 +1603,14 @@
               text = content
             }
             type = "markdown"
-            await setZoteroText()
+            await setConnectorText()
           } else if (AI == "Xiaoyi") {
             const div = [...document.querySelectorAll(".receive-box")].slice(-1)[0];
             isDone = Boolean(div.closest(".msg-content") && div.closest(".msg-content").querySelector(".tool-bar"))
             text = div.querySelector(".answer-cont").innerHTML
             type = "html"
 
-            await setZoteroText()
+            await setConnectorText()
           } else if (AI == "Microsoft") {
             const div = document.querySelector('[id^=chatMessageResponser]')
             if (!div) { return }
@@ -1618,7 +1618,7 @@
             isDone = div.closest('[role="article"]').querySelector(".fai-CopilotMessage__footnote")
             type = "markdown"
 
-            await setZoteroText()
+            await setConnectorText()
             
           }
         }
