@@ -36,11 +36,13 @@ class MplSlide:
         ax = fig.add_axes([0, 0, 1, 1])
         ax.axis("off")
 
+        title_size = 96 if len(title) <= 15 else max(72, 96 - (len(title) - 15) * 2)
+        wrapped_title = textwrap.fill(title, 12)
         ax.text(
             0.05,
             0.9,
-            title,
-            fontsize=96,
+            wrapped_title,
+            fontsize=title_size,
             fontproperties=self.font_prop,
             fontweight="bold",
             va="top",
@@ -48,12 +50,17 @@ class MplSlide:
             wrap=True,
         )
 
+        n = max(1, len(bullets))
+        bullet_size = 60 if n <= 4 else max(40, 60 - (n - 4) * 5)
+        line_height = 0.13 * bullet_size / 60
+        wrap_width = int(26 * 60 / bullet_size)
+
         y = 0.75
         for bp in bullets:
-            wrapped = textwrap.fill(bp, 18)
-            ax.text(0.07, y, "\u2022", fontsize=64, fontproperties=self.font_prop, va="top")
-            ax.text(0.10, y, wrapped, fontsize=60, fontproperties=self.font_prop, va="top", wrap=True)
-            y -= 0.11 * (wrapped.count("\n") + 1)
+            wrapped = textwrap.fill(bp, wrap_width)
+            ax.text(0.07, y, "\u2022", fontsize=bullet_size, fontproperties=self.font_prop, va="top")
+            ax.text(0.10, y, wrapped, fontsize=bullet_size, fontproperties=self.font_prop, va="top", wrap=True)
+            y -= line_height * (wrapped.count("\n") + 1)
 
         buf = io.BytesIO()
         fig.savefig(buf, format="png", bbox_inches="tight")
