@@ -86,7 +86,7 @@
 // @connect      https://chatglm.cn/*
 // @connect      https://chat.deepseek.com/*
 // @connect      https://chatgpt.com/*
-// @connect      http://127.0.0.1:5123/connector
+// @connect      127.0.0.1
 // @grant        GM_xmlhttpRequest
 // @grant        GM_registerMenuCommand
 // @grant        GM_setValue
@@ -97,6 +97,12 @@
 
 (async function () {
   'use strict';
+  const CONNECTOR_URL = 'http://127.0.0.1:5123/connector'
+  GM_xmlhttpRequest({
+    method: 'HEAD',
+    url: CONNECTOR_URL,
+    onerror: () => console.warn('Connector not reachable at ' + CONNECTOR_URL)
+  })
   let isRunning = true
   let AI = "ChatGPT"
   const host = location.host
@@ -862,7 +868,7 @@
       return new Promise((resolve, reject) => {
         GM_xmlhttpRequest({
           method: "POST",
-          url: "http://127.0.0.1:5123/connector",
+          url: CONNECTOR_URL,
           headers: {
             "Content-Type": "application/json",
           },

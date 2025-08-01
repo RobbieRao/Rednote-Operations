@@ -19,9 +19,17 @@ pip install -r requirements.txt
 ```
 
 ## 运行
+启动前请确保：
+- 浏览器已登录支持的 AI 网站（如 [chatgpt.com](https://chatgpt.com)）。
+- Tampermonkey 中启用了本仓库提供的 `gptconnector.js` 脚本。
+- 首次启用脚本时，Tampermonkey 会提示是否允许访问 `http://127.0.0.1:5123`，请点击允许。
+
+然后在命令行执行：
 ```bash
 python main.py
 ```
+若出现“无法连接浏览器脚本”的提示，通常是由于用户脚本未启用或页面未打开。
+如已确认上述步骤仍报错，请检查防火墙是否允许访问 `http://127.0.0.1:5123/connector`。
 按照界面提示上传 PDF 和字体，设置幻灯片数量后点击“生成”。
 
 ## 项目结构
