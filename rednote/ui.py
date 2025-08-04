@@ -18,7 +18,7 @@ def ui(pdf, slides, font):
 
 def build_demo() -> gr.Blocks:
     with gr.Blocks(title="小红书论文摘要生成 · matplotlib") as demo:
-        gr.Markdown("**确保：浏览器已登录 ChatGPT，并启用 Tampermonkey 用户脚本**")
+        gr.Markdown("**确保：本地已启动 Ollama 服务**")
         with gr.Row():
             pdf_in = gr.File(label="论文 PDF", type="filepath", file_types=[".pdf"])
             font_in = gr.File(label="中文字体(可选)", type="filepath", file_types=[".ttf", ".ttc"])

@@ -33,14 +33,15 @@ class MplSlide:
     def draw(self, title: str, bullets: List[str]) -> Image.Image:
         plt.close("all")
         fig = plt.figure(figsize=(self.W, self.H), dpi=100)
+        fig.patch.set_facecolor("#fafafa")
         ax = fig.add_axes([0, 0, 1, 1])
         ax.axis("off")
 
-        title_size = 96 if len(title) <= 15 else max(72, 96 - (len(title) - 15) * 2)
+        title_size = 88 if len(title) <= 15 else max(64, 88 - (len(title) - 15) * 2)
         wrapped_title = textwrap.fill(title, 12)
         ax.text(
             0.05,
-            0.9,
+            0.92,
             wrapped_title,
             fontsize=title_size,
             fontproperties=self.font_prop,
@@ -51,15 +52,15 @@ class MplSlide:
         )
 
         n = max(1, len(bullets))
-        bullet_size = 60 if n <= 4 else max(40, 60 - (n - 4) * 5)
-        line_height = 0.13 * bullet_size / 60
-        wrap_width = int(26 * 60 / bullet_size)
+        bullet_size = 48 if n <= 5 else max(32, 48 - (n - 5) * 4)
+        line_height = 0.12 * bullet_size / 48
+        wrap_width = int(32 * 48 / bullet_size)
 
-        y = 0.75
+        y = 0.78
         for bp in bullets:
             wrapped = textwrap.fill(bp, wrap_width)
-            ax.text(0.07, y, "\u2022", fontsize=bullet_size, fontproperties=self.font_prop, va="top")
-            ax.text(0.10, y, wrapped, fontsize=bullet_size, fontproperties=self.font_prop, va="top", wrap=True)
+            ax.text(0.06, y, "\u2022", fontsize=bullet_size, fontproperties=self.font_prop, va="top")
+            ax.text(0.09, y, wrapped, fontsize=bullet_size, fontproperties=self.font_prop, va="top", wrap=True)
             y -= line_height * (wrapped.count("\n") + 1)
 
         buf = io.BytesIO()
